@@ -3,6 +3,7 @@
 
 var msg = jsGen.lib.msg,
     then = jsGen.module.then,
+    request = jsGen.lib.request,
     UserPublicTpl = jsGen.lib.json.UserPublicTpl,
     UserPrivateTpl = jsGen.lib.json.UserPrivateTpl,
     each = jsGen.lib.tools.each,
@@ -861,6 +862,37 @@ function resetUser(req, res) {
     }).fail(res.throwError);
 }
 
+function getPois(req, res) {
+    var data,
+        location = req.getparam.location;
+    console.log(req.getparam.location);
+    //var poisapi = 'http://apis.map.qq.com/ws/geocoder/v1/?location=40.051517,116.310089&key=OPMBZ-42M3D-72S4R-PZZ4H-K7YVF-VMFLD&get_poi=1';
+    var poisapi = 'http://apis.map.qq.com/ws/geocoder/v1/?location=' + location  + '&key=OPMBZ-42M3D-72S4R-PZZ4H-K7YVF-VMFLD&get_poi=1';
+    console.log(poisapi);
+    then(function (defer) {
+        /* 暂时不要求登录
+        if (!req.session.Uid) {
+            defer(jsGen.Err(msg.USER.userNeedLogin));
+        } else {
+            userCache.getP(req.session.Uid, false).all(defer);
+        }
+        */
+        request(poisapi, function(error, response, body) {
+
+            data = parseJSON(body);
+            console.log(data.result.pois);
+            res.sendjson(data.result.pois);
+            //res.sendjson(data.result.pois[0]);
+        });
+    /*}).then(function (defer, user) {
+        request(poisapi, function(error, response, body) {
+            console.log(body);
+            res.send(body);
+        });
+        */
+    }).fail(res.throwError);
+}
+
 function getArticles(req, res) {
     var key,
         p = +req.getparam.p || +req.getparam.pageIndex || 1;
@@ -962,6 +994,8 @@ module.exports = {
         case 'fans':
         case 'follow':
             return getUsersList(req, res);
+        case 'pois':
+            return getPois(req, res);
         default:
             return getUser(req, res);
         }

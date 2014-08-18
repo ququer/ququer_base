@@ -8,8 +8,8 @@ module.exports = {
 /*
 * 注意，所有的路径配置的前面请加‘/’而后面不要加'/'！
 */
-    server: 'angularjs.cn',
-    poweredBy: 'jsGen',
+    server: 'ququr.com',
+    poweredBy: 'ququr',
     listenPort: 3000,//监听端口，如果配合clusterplus监听多个端口，这里也可以使用[3000, 3001, 3002, 3003]数组形式，rrestjs会智能分析
     //baseDir: path.join(__dirname, '/..'), //绝对目录地址，下面的目录配置都是根据这个目录的相对地址，这里是根据config文件进行配置地址
     baseDir: processPath,//这里是根据启动nodejs的命令目录来设置baseDir

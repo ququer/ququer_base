@@ -38,6 +38,7 @@ serverDm.run(function () {
     jsGen.lib.redis = require('./lib/redis.js');
     jsGen.lib.CacheLRU = require('./lib/cacheLRU.js');
     jsGen.lib.converter = require('./lib/anyBaseConverter.js');
+    jsGen.lib.request = require('request');
     jsGen.Err = jsGen.lib.tools.Err;
     jsGen.dao = {};
     jsGen.dao.db = require('./dao/mongoDao.js').db;
@@ -178,8 +179,9 @@ serverDm.run(function () {
 
         function router(req, res) {
             var path = req.path[0].toLowerCase();
-            console.log('jsGen path： ' + path);
+            console.log('jsGen path0： ' + path);
             console.log('jsGen path1： ' + req.path[1]);
+            console.log('jsGen path2： ' + req.path[2]);
             console.log('jsGen req.method： ' + req.method);
             if (path === 'api' && jsGen.api[req.path[1]]) {
                 jsGen.api[req.path[1]][req.method](req, res); // 处理api请求
