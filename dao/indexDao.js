@@ -65,6 +65,7 @@ globalCollection.bind({
                 commentCache: 0,
                 listCache: 0,
                 tagCache: 0,
+                poiCache: 0,
                 collectionCache: 0,
                 messageCache: 0,
                 paginationCache: 0,

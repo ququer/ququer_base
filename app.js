@@ -43,6 +43,7 @@ serverDm.run(function () {
     jsGen.dao = {};
     jsGen.dao.db = require('./dao/mongoDao.js').db;
     jsGen.dao.tag = require('./dao/tagDao.js');
+    jsGen.dao.poi = require('./dao/poiDao.js');
     jsGen.dao.user = require('./dao/userDao.js');
     jsGen.dao.index = require('./dao/indexDao.js');
     jsGen.dao.article = require('./dao/articleDao.js');
@@ -120,12 +121,13 @@ serverDm.run(function () {
             fs.readFile(processPath + jsGen.conf.staticFolder + '/robots.txt', 'utf8', defer); // 读取robots.txt
         }
     ]).then(function (defer, result) {
-        var api = ['index', 'user', 'article', 'tag', 'collection', 'message'],
+        var api = ['index', 'user', 'article', 'tag', 'poi', 'collection', 'message'],
             config = jsGen.config;
 
         // 初始化内存缓存
         jsGen.cache = {};
         jsGen.cache.tag = new CacheLRU(config.tagCache);
+        jsGen.cache.poi = new CacheLRU(config.poiCache);
         jsGen.cache.user = new CacheLRU(config.userCache);
         jsGen.cache.list = new CacheLRU(config.listCache);
         jsGen.cache.article = new CacheLRU(config.articleCache);
