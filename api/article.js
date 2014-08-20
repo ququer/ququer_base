@@ -32,6 +32,7 @@ var msg = jsGen.lib.msg,
     listCache = jsGen.cache.list,
     articleDao = jsGen.dao.article,
     articleCache = jsGen.cache.article,
+    poiCache = jsGen.cache.poi,
     commentCache = jsGen.cache.comment,
     convertArticleID = articleDao.convertID,
     paginationCache = jsGen.cache.pagination;
@@ -285,56 +286,60 @@ function filterArticle(articleObj) {
         if (!(newObj.content = filterContent(newObj.content))) {
             return defer(jsGen.Err(msg.ARTICLE.articleMinErr));
         }
+        /* poi 非法判断 */
+        if (!newObj.poi) {
+            return defer(jsGen.Err(msg.ARTICLE.articlePoiErr));
+        }
         if (newObj.cover && !checkUrl(newObj.cover)) {
             delete newObj.cover;
         }
         if (newObj.refer && !checkUrl(newObj.refer) && !checkID(newObj.refer, 'A')) {
             delete newObj.refer;
         }
-        /* poi 非法判断 */
-        if (newObj.poi) {
-            poiAPI.filterPois(newObj.poi).then(function (defer2, poi) {
-                if (poi) {
-                    newObj.poi = poi;
-                }
-            }).fail(defer);
-        }
-        if (newObj.tagsList && newObj.tagsList.length > 0) {
-            tagAPI.filterTags(newObj.tagsList.slice(0, jsGenConfig.ArticleTagsMax)).then(function (defer2, tagsList) {
-                if (tagsList) {
-                    newObj.tagsList = tagsList;
-                }
-                if (!articleObj._id) {
-                    defer(null, newObj);
-                } else {
-                    articleCache.getP(articleObj._id, false).all(defer2);
-                }
-            }).then(function (defer2, article) {
-                var tagList = {}, setTagList = [];
-                each(article.tagsList, function (x) {
-                    tagList[x] = -articleObj._id;
-                });
-                each(newObj.tagsList, function (x) {
-                    if (tagList[x]) {
-                        delete tagList[x];
-                    } else {
-                        tagList[x] = articleObj._id;
+
+        poiAPI.filterPois(newObj.poi).then(function (defer2, poi) {
+            if (poi) {
+                newObj.poi = poi;
+            }
+            defer2(null);
+        }).then(function (defer2) {
+            if (newObj.tagsList && newObj.tagsList.length > 0) {
+                tagAPI.filterTags(newObj.tagsList.slice(0, jsGenConfig.ArticleTagsMax)).then(function (defer3, tagsList) {
+                    if (tagsList) {
+                        newObj.tagsList = tagsList;
                     }
-                });
-                each(tagList, function (x) {
-                    setTagList.push({
-                        _id: +x,
-                        articlesList: tagList[x]
+                    if (!articleObj._id) {
+                        defer(null, newObj);
+                    } else {
+                        articleCache.getP(articleObj._id, false).all(defer3);
+                    }
+                }).then(function (defer3, article) {
+                    var tagList = {}, setTagList = [];
+                    each(article.tagsList, function (x) {
+                        tagList[x] = -articleObj._id;
                     });
-                });
-                each(setTagList, function (x) {
-                    tagAPI.setTag(x);
-                });
+                    each(newObj.tagsList, function (x) {
+                        if (tagList[x]) {
+                            delete tagList[x];
+                        } else {
+                            tagList[x] = articleObj._id;
+                        }
+                    });
+                    each(tagList, function (x) {
+                        setTagList.push({
+                            _id: +x,
+                            articlesList: tagList[x]
+                        });
+                    });
+                    each(setTagList, function (x) {
+                        tagAPI.setTag(x);
+                    });
+                    defer(null, newObj);
+                })
+            } else {
                 defer(null, newObj);
-            }).fail(defer);
-        } else {
-            defer(null, newObj);
-        }
+            }
+        }).fail(defer);
     });
 }
 
@@ -688,7 +693,6 @@ function getList(req, res, type) {
 }
 
 function addArticle(req, res) {
-    console.log('addArticle poi:' + req.apibody.poi);
     then(function (defer) {
         if (!req.session.Uid) {
             defer(jsGen.Err(msg.USER.userNeedLogin));
@@ -706,6 +710,7 @@ function addArticle(req, res) {
     }).then(function (defer) {
         filterArticle(req.apibody).all(defer);
     }).then(function (defer, article) {
+        console.log('after filterArticle poi:' + article.poi);
         article.date = Date.now();
         article.updateTime = article.date;
         article.display = 0;
@@ -728,6 +733,7 @@ function addArticle(req, res) {
             _id: article.poi,
             articlesList: article._id
         });
+        console.log('after setPoi poi:' + article.poi);
         cache.update(article);
         userCache.update(req.session.Uid, function (user) {
             user.articlesList.push(article._id);

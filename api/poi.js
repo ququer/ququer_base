@@ -194,6 +194,7 @@ function filterPois(poiid) {
         }
     }).then(function (defer, ID) {
         removeItem(ID, null);
+        console.log('filterPois final id:' + ID);
         defer(null, ID);
     });
 }
@@ -216,16 +217,13 @@ function getPoiID(req) {
 function getPoi(req, res) {
     var poi,
         p = +req.getparam.p || +req.getparam.pageIndex || 1;
-    console.log('getPoi 0');
     req.session.paginationKey = req.session.paginationKey || {};
-    console.log('getPoi 1');
     getPoiID(req).then(function (defer, doc) {
-        console.log('getPoi 2');
         var key = 'Poi' + doc.poi,
             list = paginationCache.get(req.session.paginationKey[key]);
-        console.log('getPoi key： ' + key);
         poi = doc;
         if (!list || p === 1) {
+            console.log('getPoi from db： ' + p);
             then(function (defer2) {
                 poiCache.getP(poi._id).all(defer2);
             }).then(function (defer2, poi) {

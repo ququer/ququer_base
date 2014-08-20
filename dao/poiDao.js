@@ -96,17 +96,17 @@ pois.bind({
     setPoi: function (poiObj, callback) {
         var setObj = {},
             newObj = {
-                poi: '',
+                poi: 0,
                 articlesList: 0,
                 usersList: 0
             };
-
         newObj = intersect(newObj, poiObj);
         if (newObj.poi) {
             setObj.$set = {
                 poi: newObj.poi
             };
         } else if (newObj.articlesList) {
+            console.log('setPoi articlesList 0:' + newObj.articlesList);
             if (newObj.articlesList < 0) {
                 newObj.articlesList = -newObj.articlesList;
                 setObj.$inc = {
@@ -115,6 +115,7 @@ pois.bind({
                 setObj.$pull = {
                     articlesList: newObj.articlesList
                 };
+                console.log('setPoi articlesList 1:' + setObj.articlesList);
             } else {
                 setObj.$inc = {
                     articles: 1
@@ -166,6 +167,7 @@ pois.bind({
         newPoi = intersect(newPoi, poiObj);
         newPoi = union(poi, newPoi);
 
+        console.log('setNewPoi poi:' + newPoi.poi);
         this.getLatestId(function (err, doc) {
             if (err) {
                 return callback(err, null);
