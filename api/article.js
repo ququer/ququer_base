@@ -273,11 +273,11 @@ function filterArticle(articleObj) {
             title: '',
             cover: '',
             content: '',
-            poi: '',
+            poi: 0,
             tagsList: [''],
             comment: true
         };
-
+        console.log('filterArticle poi:' + articleObj.poi);
         intersect(newObj, articleObj);
         if (!(newObj.title = filterTitle(newObj.title))) {
             return defer(jsGen.Err(msg.ARTICLE.titleMinErr));
@@ -291,13 +291,13 @@ function filterArticle(articleObj) {
         if (newObj.refer && !checkUrl(newObj.refer) && !checkID(newObj.refer, 'A')) {
             delete newObj.refer;
         }
-        /* poi 非法判断
+        /* poi 非法判断 */
         if (newObj.poi) {
-            delete newObj.poi;
-        }
-        */
-        if (newObj.poi && newObj.poi.length > 0) {
-            poiAPI.setPoi(newObj.poi);
+            poiAPI.filterPois(newObj.poi).then(function (defer2, poi) {
+                if (poi) {
+                    newObj.poi = poi;
+                }
+            }).fail(defer);
         }
         if (newObj.tagsList && newObj.tagsList.length > 0) {
             tagAPI.filterTags(newObj.tagsList.slice(0, jsGenConfig.ArticleTagsMax)).then(function (defer2, tagsList) {
@@ -688,6 +688,7 @@ function getList(req, res, type) {
 }
 
 function addArticle(req, res) {
+    console.log('addArticle poi:' + req.apibody.poi);
     then(function (defer) {
         if (!req.session.Uid) {
             defer(jsGen.Err(msg.USER.userNeedLogin));
@@ -743,7 +744,7 @@ function addArticle(req, res) {
 
 function setArticle(req, res) {
     var date = Date.now();
-
+    console.log('setArticle poi:' + req.apibody.poi);
     getArticleID(req).then(function (defer, article) {
         if (req.session.role < 1) {
             defer(jsGen.Err(msg.USER.userRole0));
@@ -939,13 +940,17 @@ module.exports = {
         }
     },
     POST: function (req, res) {
+        console.log('Article POST:' + req.path[2]);
         switch (req.path[2]) {
         case undefined:
         case 'index':
+            console.log('index:');
             return addArticle(req, res);
         case 'comment':
+            console.log('comment:');
             return getComments(req, res);
         default:
+            console.log('default:');
             return setArticle(req, res);
         }
     },

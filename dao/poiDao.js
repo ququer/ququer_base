@@ -157,6 +157,7 @@ pois.bind({
     },
 
     setNewPoi: function (poiObj, callback) {
+        console.log('setNewPoi poi:' + poiObj.poi);
         var that = this,
             poi = union(defautPoi),
             newPoi = union(defautPoi);

@@ -181,10 +181,10 @@ serverDm.run(function () {
 
         function router(req, res) {
             var path = req.path[0].toLowerCase();
+            console.log('jsGen req.method： ' + req.method);
             console.log('jsGen path0： ' + path);
             console.log('jsGen path1： ' + req.path[1]);
             console.log('jsGen path2： ' + req.path[2]);
-            console.log('jsGen req.method： ' + req.method);
             if (path === 'api' && jsGen.api[req.path[1]]) {
                 jsGen.api[req.path[1]][req.method](req, res); // 处理api请求
             } else if (jsGen.robotReg.test(req.useragent)) {

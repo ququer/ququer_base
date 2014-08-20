@@ -172,16 +172,19 @@ function setPoi(poiObj) {
     });
 }
 
-function filterPois(poiArray) {
-    return then.each(toArray(poiArray), function (defer, x) {
-        if (x && (x = filterPoi(x))) {
+function filterPois(poiid) {
+    return then(function (defer) {
+        console.log('filterPois poi:' + poiid);
+        if (poiid) {
             then(function (defer2) {
-                cache.get(x, defer2);
+                cache.get(poiid, defer2);
             }).then(function (defer2, ID) {
+                console.log('filterPois ID:' + ID);
                 defer(null, ID);
             }, function (defer2, err) {
+                console.log('filterPois poiid:' + poiid);
                 poiDao.setNewPoi({
-                    poi: x
+                    poi: poiid
                 }, function (err, poi) {
                     defer(null, poi ? (cache.update(poi), poi._id) : null);
                 });
@@ -189,9 +192,9 @@ function filterPois(poiArray) {
         } else {
             defer(null, null);
         }
-    }).then(function (defer, IDArray) {
-        removeItem(IDArray, null);
-        defer(null, IDArray);
+    }).then(function (defer, ID) {
+        removeItem(ID, null);
+        defer(null, ID);
     });
 }
 
@@ -206,7 +209,6 @@ function getPoiID(req) {
             });
         }
     }).then(function (defer, ID) {
-        console.log(ID);
         cache(ID, defer);
     }).fail(errorHandler);
 }
