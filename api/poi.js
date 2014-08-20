@@ -2,6 +2,7 @@
 /*global require, module, Buffer, jsGen*/
 
 var msg = jsGen.lib.msg,
+    request = jsGen.lib.request,
     MD5 = jsGen.lib.tools.MD5,
     each = jsGen.lib.tools.each,
     union = jsGen.lib.tools.union,
@@ -13,6 +14,7 @@ var msg = jsGen.lib.msg,
     removeItem = jsGen.lib.tools.removeItem,
     errorHandler = jsGen.lib.tools.errorHandler,
     paginationList = jsGen.lib.tools.paginationList,
+    parseJSON = jsGen.lib.tools.parseJSON,
     poiDao = jsGen.dao.poi,
     redis = jsGen.lib.redis,
     then = jsGen.module.then,
@@ -244,6 +246,28 @@ function getPoi(req, res) {
     }).fail(res.throwError);
 }
 
+function getLocPois(req, res) {
+    var data,
+        location = req.getparam.location;
+    console.log(req.getparam.location);
+    var poisapi = 'http://apis.map.qq.com/ws/geocoder/v1/?location=' + location  + '&key=OPMBZ-42M3D-72S4R-PZZ4H-K7YVF-VMFLD&get_poi=1';
+    console.log(poisapi);
+    then(function (defer) {
+        /* 暂时不要求登录
+         if (!req.session.Uid) {
+         defer(jsGen.Err(msg.USER.userNeedLogin));
+         } else {
+         userCache.getP(req.session.Uid, false).all(defer);
+         }
+         */
+        request(poisapi, function(error, response, body) {
+            data = parseJSON(body);
+            console.log(data.result.pois);
+            res.sendjson(data.result.pois);
+        });
+    }).fail(res.throwError);
+}
+
 function getPois(req, res) {
     var list,
         s = +req.path[3],
@@ -320,6 +344,8 @@ module.exports = {
         case 'index':
         case 'hots':
             return getPois(req, res);
+        case 'pois':
+            return getLocPois(req, res);
         default:
             return getPoi(req, res);
         }

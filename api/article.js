@@ -24,6 +24,7 @@ var msg = jsGen.lib.msg,
     jsGenCache = jsGen.cache,
     jsGenConfig = jsGen.config,
     tagAPI = jsGen.api.tag,
+    poiAPI = jsGen.api.poi,
     redis = jsGen.lib.redis,
     userAPI = jsGen.api.user,
     cache = redis.articleCache,
@@ -272,6 +273,7 @@ function filterArticle(articleObj) {
             title: '',
             cover: '',
             content: '',
+            poi: '',
             tagsList: [''],
             comment: true
         };
@@ -288,6 +290,14 @@ function filterArticle(articleObj) {
         }
         if (newObj.refer && !checkUrl(newObj.refer) && !checkID(newObj.refer, 'A')) {
             delete newObj.refer;
+        }
+        /* poi 非法判断
+        if (newObj.poi) {
+            delete newObj.poi;
+        }
+        */
+        if (newObj.poi && newObj.poi.length > 0) {
+            poiAPI.setPoi(newObj.poi);
         }
         if (newObj.tagsList && newObj.tagsList.length > 0) {
             tagAPI.filterTags(newObj.tagsList.slice(0, jsGenConfig.ArticleTagsMax)).then(function (defer2, tagsList) {
@@ -712,6 +722,10 @@ function addArticle(req, res) {
                 _id: x,
                 articlesList: article._id
             });
+        });
+        jsGen.dao.poi.setPoi({
+            _id: article.poi,
+            articlesList: article._id
         });
         cache.update(article);
         userCache.update(req.session.Uid, function (user) {
