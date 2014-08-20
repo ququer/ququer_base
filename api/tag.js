@@ -211,14 +211,10 @@ function getTagID(req) {
 function getTag(req, res) {
     var tag,
         p = +req.getparam.p || +req.getparam.pageIndex || 1;
-    console.log('getTag 0');
     req.session.paginationKey = req.session.paginationKey || {};
-    console.log('getTag 1');
     getTagID(req).then(function (defer, doc) {
-        console.log('getTag 2');
         var key = 'Tag' + doc.tag,
             list = paginationCache.get(req.session.paginationKey[key]);
-        console.log('getTag key： ' + key);
         tag = doc;
         if (!list || p === 1) {
             then(function (defer2) {
