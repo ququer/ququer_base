@@ -286,7 +286,7 @@ function filterArticle(articleObj) {
             return defer(jsGen.Err(msg.ARTICLE.articleMinErr));
         }
         /* poi 非法判断 */
-        if (!newObj.poi && newObj.poi > 0) {
+        if (!newObj.poi || newObj.poi <= 0) {
             return defer(jsGen.Err(msg.ARTICLE.articlePoiErr));
         }
         if (newObj.cover && !checkUrl(newObj.cover)) {
@@ -614,15 +614,17 @@ function setOppose(req, ID) {
 
 function getArticle(req, res) {
     getArticleID(req).then(function (defer, article) {
+        /*
         if (article.display > 0 && !req.session.Uid) {
             defer(jsGen.Err(msg.USER.userNeedLogin));
         } else if (article.display === 1 && (article.author !== req.session.Uid || req.session.role < 4)) {
             defer(jsGen.Err(msg.ARTICLE.articleDisplay1));
         } else if (article.display === 2 && req.session.role !== 5) {
             defer(jsGen.Err(msg.ARTICLE.articleDisplay2));
-        } else {
+        } else */{
             articleCache.getP(article._id).all(defer);
         }
+
     }).then(function (defer, article) {
         paginationList(req, article.commentsList.reverse(), commentCache, function (err, data, pagination) {
             defer(err, data, pagination, article);
@@ -693,11 +695,12 @@ function getList(req, res, type) {
 
 function addArticle(req, res) {
     then(function (defer) {
+        /*
         if (!req.session.Uid) {
             defer(jsGen.Err(msg.USER.userNeedLogin));
         } else if (req.session.role < 2) {
             defer(jsGen.Err(msg.USER.userRoleErr));
-        } else {
+        } else */{
             checkTimeInterval(req, 'AddArticle').all(function (defer2, err, value) {
                 if (value) {
                     defer(jsGen.Err(msg.MAIN.timeIntervalErr + '[' + jsGenConfig.TimeInterval + 's]'));
@@ -757,6 +760,7 @@ function addArticle(req, res) {
 function setArticle(req, res) {
     var date = Date.now();
     getArticleID(req).then(function (defer, article) {
+        /*
         if (req.session.role < 1) {
             defer(jsGen.Err(msg.USER.userRole0));
         } else if (article.display > 0 && !req.session.Uid) {
@@ -765,9 +769,10 @@ function setArticle(req, res) {
             defer(jsGen.Err(msg.ARTICLE.articleDisplay1));
         } else if (article.display === 2 && req.session.role !== 5) {
             defer(jsGen.Err(msg.ARTICLE.articleDisplay2));
-        } else {
+        } else */{
             defer(null, article);
         }
+
     }).then(function (defer, article) {
         if (req.path[3] === 'comment') {
             addComment(req, article._id).then(function (defer, comment) {
@@ -895,11 +900,12 @@ function sitemap(req, res) {
 
 function deleteArticle(req, res) {
     getArticleID(req).then(function (defer, article) {
+        /*
         if (!req.session.Uid) {
             defer(jsGen.Err(msg.USER.userNeedLogin));
         } else if (article.display > 1 && req.session.role !== 5) {
             defer(jsGen.Err(msg.ARTICLE.articleDisplay2));
-        } else {
+        } else */{
             listCache.getP(article._id, false).all(defer);
         }
     }, function (defer, err) {
