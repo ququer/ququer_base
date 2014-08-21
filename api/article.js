@@ -278,7 +278,6 @@ function filterArticle(articleObj) {
             tagsList: [''],
             comment: true
         };
-        console.log('filterArticle poi:' + articleObj.poi);
         intersect(newObj, articleObj);
         if (!(newObj.title = filterTitle(newObj.title))) {
             return defer(jsGen.Err(msg.ARTICLE.titleMinErr));
@@ -287,7 +286,7 @@ function filterArticle(articleObj) {
             return defer(jsGen.Err(msg.ARTICLE.articleMinErr));
         }
         /* poi 非法判断 */
-        if (!newObj.poi) {
+        if (!newObj.poi && newObj.poi > 0) {
             return defer(jsGen.Err(msg.ARTICLE.articlePoiErr));
         }
         if (newObj.cover && !checkUrl(newObj.cover)) {
@@ -710,7 +709,6 @@ function addArticle(req, res) {
     }).then(function (defer) {
         filterArticle(req.apibody).all(defer);
     }).then(function (defer, article) {
-        console.log('after filterArticle poi:' + article.poi);
         article.date = Date.now();
         article.updateTime = article.date;
         article.display = 0;
@@ -719,21 +717,29 @@ function addArticle(req, res) {
         delete article._id;
         articleDao.setNewArticle(article, defer);
     }).then(function (defer, article) {
+        // 写入数据库
         jsGen.dao.user.setArticle({
             _id: req.session.Uid,
             articlesList: article._id
         });
+        // 写入数据库
         each(article.tagsList, function (x) {
             jsGen.dao.tag.setTag({
                 _id: x,
                 articlesList: article._id
             });
         });
+        // 写入数据库
         jsGen.dao.poi.setPoi({
             _id: article.poi,
             articlesList: article._id
+        }, function (err, poi) {
+            // 写入缓存
+            if (poi) {
+                redis.poiCache.update(poi);
+                poiCache.put(poi._id, poi);
+            }
         });
-        console.log('after setPoi poi:' + article.poi);
         cache.update(article);
         userCache.update(req.session.Uid, function (user) {
             user.articlesList.push(article._id);
@@ -750,7 +756,6 @@ function addArticle(req, res) {
 
 function setArticle(req, res) {
     var date = Date.now();
-    console.log('setArticle poi:' + req.apibody.poi);
     getArticleID(req).then(function (defer, article) {
         if (req.session.role < 1) {
             defer(jsGen.Err(msg.USER.userRole0));
@@ -946,17 +951,13 @@ module.exports = {
         }
     },
     POST: function (req, res) {
-        console.log('Article POST:' + req.path[2]);
         switch (req.path[2]) {
         case undefined:
         case 'index':
-            console.log('index:');
             return addArticle(req, res);
         case 'comment':
-            console.log('comment:');
             return getComments(req, res);
         default:
-            console.log('default:');
             return setArticle(req, res);
         }
     },

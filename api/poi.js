@@ -20,8 +20,48 @@ var msg = jsGen.lib.msg,
     then = jsGen.module.then,
     poiCache = jsGen.cache.poi,
     cache = jsGen.lib.redis.poiCache,
-    paginationCache = jsGen.cache.pagination;
-
+    paginationCache = jsGen.cache.pagination,
+    categoryHash={
+        //购物
+        "综合商场"              :200,
+        //医疗保健
+        "综合医院"              :200,
+        //酒店宾馆
+        "酒店宾馆"              :200,
+        "星级酒店"              :200,
+        "经济型酒店"            :200,
+        "旅馆招待所"            :200,
+        "青年旅社"              :200,
+        "公寓式酒店"            :200,
+        //旅游景点
+        "旅游景点"              :200,
+        "风景名胜"              :200,
+        "公园"                  :200,
+        //文化场馆
+        "博物馆"                :200,
+        "展览馆"                :200,
+        "科技馆"                :200,
+        "图书馆"                :200,
+        "美术馆"                :200,
+        "会展中心"              :200,
+        "综合体育场馆"          :200,
+        //教育学校
+        "大学"                  :200,
+        "中学"                  :200,
+        "小学"                  :200,
+        "幼儿园"                :200,
+        "职业技术学校"          :200,
+        //基础设施
+        "地铁站"                :200,
+        "火车站"                :200,
+        "长途汽车站"            :200,
+        //房产小区
+        "住宅小区"              :200,
+        "别墅"                  :200,
+        "宿舍"                  :200,
+        "社区中心"              :200,
+        "商务楼宇"              :200
+    };
 poiCache.getP = function (ID) {
     var that = this,
         inCache = false;
@@ -174,15 +214,12 @@ function setPoi(poiObj) {
 
 function filterPois(poiid) {
     return then(function (defer) {
-        console.log('filterPois poi:' + poiid);
-        if (poiid) {
+        if (poiid && poiid > 0) {
             then(function (defer2) {
                 cache.get(poiid, defer2);
             }).then(function (defer2, ID) {
-                console.log('filterPois ID:' + ID);
                 defer(null, ID);
             }, function (defer2, err) {
-                console.log('filterPois poiid:' + poiid);
                 poiDao.setNewPoi({
                     poi: poiid
                 }, function (err, poi) {
@@ -194,7 +231,6 @@ function filterPois(poiid) {
         }
     }).then(function (defer, ID) {
         removeItem(ID, null);
-        console.log('filterPois final id:' + ID);
         defer(null, ID);
     });
 }
@@ -223,7 +259,6 @@ function getPoi(req, res) {
             list = paginationCache.get(req.session.paginationKey[key]);
         poi = doc;
         if (!list || p === 1) {
-            console.log('getPoi from db： ' + p);
             then(function (defer2) {
                 poiCache.getP(poi._id).all(defer2);
             }).then(function (defer2, poi) {
@@ -239,7 +274,6 @@ function getPoi(req, res) {
         paginationList(req, list, jsGen.cache.list, defer);
     }).then(function (defer, data, pagination) {
         poi._id = poiDao.convertID(poi._id);
-        console.log('getPoi key： ' + poi._id);
         return res.sendjson(resJson(null, data, pagination, {
             poi: poi
         }));
@@ -247,10 +281,17 @@ function getPoi(req, res) {
 }
 
 function getLocPois(req, res) {
-    var data,
-        location = req.getparam.location;
-    console.log(req.getparam.location);
-    var poisapi = 'http://apis.map.qq.com/ws/geocoder/v1/?location=' + location  + '&key=OPMBZ-42M3D-72S4R-PZZ4H-K7YVF-VMFLD&get_poi=1';
+    var location = req.getparam.location,
+        defaultpoi = {
+            id: '',
+            title: '',
+            address:'',
+            category:'',
+            location:{},
+            _distance:0,
+            _dir_desc:''
+        },
+        poisapi = 'http://apis.map.qq.com/ws/geocoder/v1/?location=' + location  + '&key=OPMBZ-42M3D-72S4R-PZZ4H-K7YVF-VMFLD&get_poi=1';
     console.log(poisapi);
     then(function (defer) {
         /* 暂时不要求登录
@@ -261,9 +302,25 @@ function getLocPois(req, res) {
          }
          */
         request(poisapi, function(error, response, body) {
+            var
             data = parseJSON(body);
-            console.log(data.result.pois);
-            res.sendjson(data.result.pois);
+            then.each(data.result.pois, function (defer, poi) {
+                if (poi) {
+                    console.log(poi.category + ':' + poi._distance);
+                    var category = poi.category;
+                    if (categoryHash[category] && poi._distance < categoryHash[category]) {
+                        defer(null, poi || null);
+                    } else {
+                        defer(null, null);
+                    }
+                } else {
+                    defer(null, null);
+                }
+            }).then(function (defer, pois) {
+                removeItem(pois, null);
+                res.sendjson(resJson(null, pois));
+            });
+            //res.sendjson(data.result.pois);
         });
     }).fail(res.throwError);
 }
@@ -338,7 +395,6 @@ function delPoi(req, res) {
 
 module.exports = {
     GET: function (req, res) {
-        console.log('poi.js: ' + req.path[2]);
         switch (req.path[2]) {
         case undefined:
         case 'index':
