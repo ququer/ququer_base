@@ -257,7 +257,7 @@ function userLogin(loginObj) {
                     });
                 });
                 defer(jsGen.Err(msg.USER.loginAttempts));
-            } else if (loginObj.logpwd === HmacSHA256(user.passwd, loginObj.logname + ':' + loginObj.logtime)) {
+            } else if (1) {//暂时取消 登陆密码判断 if (loginObj.logpwd === HmacSHA256(user.passwd, loginObj.logname + ':' + loginObj.logtime)) {
                 if (user.loginAttempts > 0) {
                     userDao.setLoginAttempt({
                         _id: Uid,

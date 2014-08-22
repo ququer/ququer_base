@@ -106,7 +106,7 @@ pois.bind({
                 poi: newObj.poi
             };
         } else if (newObj.articlesList) {
-            console.log('setPoi articlesList 0:' + newObj.articlesList);
+            console.log('setPoi articlesList:' + newObj.articlesList);
             if (newObj.articlesList < 0) {
                 newObj.articlesList = -newObj.articlesList;
                 setObj.$inc = {
@@ -123,7 +123,6 @@ pois.bind({
                     articlesList: newObj.articlesList
                 };
             }
-            console.log('setPoi articlesList 1:' + setObj.articlesList);
         } else if (newObj.usersList) {
             if (newObj.usersList < 0) {
                 newObj.usersList = -newObj.usersList;

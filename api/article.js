@@ -614,14 +614,13 @@ function setOppose(req, ID) {
 
 function getArticle(req, res) {
     getArticleID(req).then(function (defer, article) {
-        /*
         if (article.display > 0 && !req.session.Uid) {
             defer(jsGen.Err(msg.USER.userNeedLogin));
         } else if (article.display === 1 && (article.author !== req.session.Uid || req.session.role < 4)) {
             defer(jsGen.Err(msg.ARTICLE.articleDisplay1));
         } else if (article.display === 2 && req.session.role !== 5) {
             defer(jsGen.Err(msg.ARTICLE.articleDisplay2));
-        } else */{
+        } else {
             articleCache.getP(article._id).all(defer);
         }
 
@@ -695,12 +694,11 @@ function getList(req, res, type) {
 
 function addArticle(req, res) {
     then(function (defer) {
-        /*
         if (!req.session.Uid) {
             defer(jsGen.Err(msg.USER.userNeedLogin));
         } else if (req.session.role < 2) {
             defer(jsGen.Err(msg.USER.userRoleErr));
-        } else */{
+        } else {
             checkTimeInterval(req, 'AddArticle').all(function (defer2, err, value) {
                 if (value) {
                     defer(jsGen.Err(msg.MAIN.timeIntervalErr + '[' + jsGenConfig.TimeInterval + 's]'));
@@ -733,6 +731,7 @@ function addArticle(req, res) {
             });
         });
         // 写入数据库
+        console.log('before setPoi id:' + article.poi);
         jsGen.dao.poi.setPoi({
             _id: article.poi,
             articlesList: article._id
@@ -743,11 +742,13 @@ function addArticle(req, res) {
                 poiCache.put(poi._id, poi);
             }
         });
+        console.log('after setPoi id:' + article.poi);
         cache.update(article);
         userCache.update(req.session.Uid, function (user) {
             user.articlesList.push(article._id);
             return user;
         });
+        console.log('after cache id:' + article.poi);
         articleCache.put(article._id, article);
         jsGenConfig.articles = 1;
         checkTimeInterval(req, 'AddArticle', true);
@@ -760,7 +761,6 @@ function addArticle(req, res) {
 function setArticle(req, res) {
     var date = Date.now();
     getArticleID(req).then(function (defer, article) {
-        /*
         if (req.session.role < 1) {
             defer(jsGen.Err(msg.USER.userRole0));
         } else if (article.display > 0 && !req.session.Uid) {
@@ -769,7 +769,7 @@ function setArticle(req, res) {
             defer(jsGen.Err(msg.ARTICLE.articleDisplay1));
         } else if (article.display === 2 && req.session.role !== 5) {
             defer(jsGen.Err(msg.ARTICLE.articleDisplay2));
-        } else */{
+        } else {
             defer(null, article);
         }
 
@@ -900,12 +900,11 @@ function sitemap(req, res) {
 
 function deleteArticle(req, res) {
     getArticleID(req).then(function (defer, article) {
-        /*
         if (!req.session.Uid) {
             defer(jsGen.Err(msg.USER.userNeedLogin));
         } else if (article.display > 1 && req.session.role !== 5) {
             defer(jsGen.Err(msg.ARTICLE.articleDisplay2));
-        } else */{
+        } else {
             listCache.getP(article._id, false).all(defer);
         }
     }, function (defer, err) {
